@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Percent, Wallet, HardHat, HandCoins, Receipt } from 'lucide-react';
 import { Measurement } from '../types';
@@ -26,17 +26,20 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: { title: string, v
   </div>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ measurements }) => {
+const Dashboard: React.FC<DashboardProps> = ({ measurements = [] }) => {
   const summary = calculateSummary(measurements);
   
-  const chartData = (measurements || []).map(m => ({
-    name: m.name || 'S/N',
-    recebido: Number(m.receivedValue) || 0,
-    gastos: (Number(m.totalExpenses) || 0) - (Number(m.taxAmount) || 0) - (Number(m.commissionAmount) || 0),
-    impostos: Number(m.taxAmount) || 0,
-    comissao: Number(m.commissionAmount) || 0,
-    lucro: Number(m.balance) || 0
-  }));
+  const chartData = useMemo(() => {
+    if (!measurements || measurements.length === 0) return [];
+    return measurements.map(m => ({
+      name: m.name || 'Sem Nome',
+      recebido: Number(m.receivedValue) || 0,
+      gastos: (Number(m.totalExpenses) || 0) - (Number(m.taxAmount) || 0) - (Number(m.commissionAmount) || 0),
+      impostos: Number(m.taxAmount) || 0,
+      comissao: Number(m.commissionAmount) || 0,
+      lucro: Number(m.balance) || 0
+    }));
+  }, [measurements]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -54,22 +57,29 @@ const Dashboard: React.FC<DashboardProps> = ({ measurements }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+        <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm min-h-[450px]">
           <h2 className="text-lg font-black text-slate-800 mb-8">Performance por Medição</h2>
           <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11}} tickFormatter={(value) => `R$ ${value/1000}k`} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => formatCurrency(value)}
-                />
-                <Bar dataKey="recebido" name="Recebido" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="gastos" name="Gastos" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11}} tickFormatter={(value) => `R$ ${value/1000}k`} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value: number) => formatCurrency(value)}
+                  />
+                  <Bar dataKey="recebido" name="Recebido" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="gastos" name="Gastos" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                <TrendingUp size={48} className="opacity-10 mb-2" />
+                <p className="font-bold text-sm">Aguardando dados para gerar gráfico...</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -86,11 +96,11 @@ const Dashboard: React.FC<DashboardProps> = ({ measurements }) => {
             </div>
             <div className="space-y-4">
                <div className="flex justify-between text-xs font-bold text-slate-400">
-                 <span>Impostos sobre faturamento</span>
+                 <span>Impostos / Faturamento</span>
                  <span className="text-white">{summary.totalReceived > 0 ? ((summary.totalTax / summary.totalReceived) * 100).toFixed(1) : 0}%</span>
                </div>
                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                 <div className="bg-amber-600 h-full" style={{ width: `${summary.totalReceived > 0 ? (summary.totalTax/summary.totalReceived)*100 : 0}%` }}></div>
+                 <div className="bg-amber-600 h-full" style={{ width: `${summary.totalReceived > 0 ? Math.min((summary.totalTax/summary.totalReceived)*100, 100) : 0}%` }}></div>
                </div>
             </div>
           </div>

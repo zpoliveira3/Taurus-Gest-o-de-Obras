@@ -21,16 +21,21 @@
         .animation-delay-2000 {
             animation-delay: 2s;
         }
+        /* Garantir que o gráfico não quebre o layout se houver erro de carregamento */
+        .recharts-responsive-container {
+            min-height: 350px;
+        }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/": "https://esm.sh/react-dom@19.0.0/",
-    "react/": "https://esm.sh/react@19.0.0/",
-    "lucide-react": "https://esm.sh/lucide-react@0.475.0",
-    "recharts": "https://esm.sh/recharts@2.15.0"
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.475.0?deps=react@18.3.1",
+    "recharts": "https://esm.sh/recharts@2.12.7?deps=react@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
